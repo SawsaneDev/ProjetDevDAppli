@@ -1,5 +1,5 @@
 #include "uvsqgraphics_2.h"
-
+#include "morphing.h"
 
 typedef struct{
     unsigned char r,g,b;
@@ -13,14 +13,7 @@ typedef struct{
     int a, b, c;
 }Triangle;
 
- typedef struct{
-    int largeur, hauteur;
-    Couleur** pixels;
-    Point** points;
-    int nb_points;
-    Triangle* triangles;
-    int nb_triangles;
-}Images;
+
 
  int  point_dans_triangle(Point p, Point a, Point b, Point c){
     float d1= (p.x -b.x)*(a.y -b.y) -(a.x - b.x)*(p.y-b.y);
@@ -69,20 +62,28 @@ Pixel interpolation_pixel(Pixel d, Pixel a , float alpha){
 void afficher_image(Image img, int offsetX, int offsetY){
     for(int y=0; y< img.hauteur; y++){
         for(int x=0; x< img.largeur; x++){
-            draw_pixel(offsetX+x, offsetY+y, img.pixels[y][x]);
+            Couleur c =couleur_RGB(
+                img.pixels[y][x].r,
+                img.pixels[y][x].r,
+                img.pixels[y][x].r,
+            );
+            draw_pixel(offsetX+x, offsetY+y, c);
         }
     }
 }
 
-void calcul_image_intermedaire(Image dep, Image arr, Image* inter, int k, int N){
+void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N){
     float alpha= (float)k/ N;
     calcul_points_intermediaire(dep.points, arr.points, inter->points, dep.nb_points, alpha);
     triangulation(inter->points, inter->nb_points, inter->triangles, &inter->nb_triangles);
     for(int y=0; y<dep.hauteur; y++){
         for(int x=0; x< dep.largeur; x++){
-            inter->pixels[y][x].R=(1-alpha)*dep.pixels[y][x].R + alpha*arr.pixels[y][x].R;
-            inter->pixels[y][x].V=(1-alpha)*dep.pixels[y][x].V + alpha*arr.pixels[y][x].V;
-            inter->pixels[y][x].B=(1-alpha)*dep.pixels[y][x].B + alpha*arr.pixels[y][x].B;
+            inter->pixels[y][x].r=
+                (1 -alpha)* dep.pixels[x][y].r+ alpha*arr.pixels[y][x].r;
+             inter->pixels[y][x].g=
+                (1 -alpha)* dep.pixels[x][y].g+ alpha*arr.pixels[y][x].g;
+             inter->pixels[y][x].b=
+                (1 -alpha)* dep.pixels[x][y].b+ alpha*arr.pixels[y][x].b;
         }
     }
 }
@@ -95,9 +96,9 @@ void generer_images_intermediaires(Image dep, Image arr, int N){
     inter.points= malloc(sizeof(Point) * dep.nb_points);
     inter.triangles= malloc (sizeof(Triangle) * (2*dep.nb_points -6));
 
-    inter.pixels= malloc (sizeof(Couleur*) * dep.hauteur);
+    inter.pixels= malloc (sizeof(Pixel*) * dep.hauteur);
     for(int y =0; y<dep.hauteur; y++){
-        inter.pixels[y]= malloc (sizeof(Couleur) * dep.largeur);
+        inter.pixels[y]= malloc (sizeof(Pixel) * dep.largeur);
     }
 
     open_window(800,600);
