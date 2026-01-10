@@ -1,3 +1,5 @@
+#include "uvsqgraphics_2.h"
+
 
 typedef struct{
     unsigned char r,g,b;
@@ -13,7 +15,7 @@ typedef struct{
 
  typedef struct{
     int largeur, hauteur;
-    Pixel** pixels;
+    Couleur** pixels;
     Point** points;
     int nb_points;
     Triangle* triangles;
@@ -64,26 +66,12 @@ Pixel interpolation_pixel(Pixel d, Pixel a , float alpha){
     return p;
 }
 
-void ecrire_ppm(Image img, const char*nom){
-    FILE* f= fopen(nom,"w");
-    if(!f){
-        printf("Impossible d'ouvrir le fichier en ecriture\n");
-        return;
-    }
-
-    fprintf (f, "P3\n");
-    fprintf (f, "%d %d\n", img.largeur, img.hauteur);
-    fprintf (f, "255\n");
-
-    for(int y=0; y<img.hauteur; y++){
-        for(int x=0; x<img.largeur; x++){
-            Pixel p= img.pixels[y][x];
-            fprintf(f, "%d %d %d", p.r, p.g, p.b);
+void afficher_image(Image img, int offsetX, int offsetY){
+    for(int y=0; y< img.hauteur; y++){
+        for(int x=0; x< img.largeur; x++){
+            draw_pixel(offsetX+x, offsetY+y, img.pixels[y][x]);
         }
-        fprintf(f, "\n");
     }
-
-    fclose (f);
 }
 
 void calcul_image_intermedaire(Image dep, Image arr, Image* inter, int k, int N){
@@ -92,7 +80,9 @@ void calcul_image_intermedaire(Image dep, Image arr, Image* inter, int k, int N)
     triangulation(inter->points, inter->nb_points, inter->triangles, &inter->nb_triangles);
     for(int y=0; y<dep.hauteur; y++){
         for(int x=0; x< dep.largeur; x++){
-            inter->pixels[y][x]= interpolation_pixel(dep.pixels[y][x], arr.pixels[y][x], alpha);
+            inter->pixels[y][x].R=(1-alpha)*dep.pixels[y][x].R + alpha*arr.pixels[y][x].R;
+            inter->pixels[y][x].V=(1-alpha)*dep.pixels[y][x].V + alpha*arr.pixels[y][x].V;
+            inter->pixels[y][x].B=(1-alpha)*dep.pixels[y][x].B + alpha*arr.pixels[y][x].B;
         }
     }
 }
@@ -102,21 +92,35 @@ void generer_images_intermediaires(Image dep, Image arr, int N){
     inter.largeur= dep.largeur;
     inter.hauteur= dep.hauteur;
     inter.nb_points=dep.nb_points;
-    inter.points= malloc(sizeof(Point*) * dep.nb_points);
-    inter.triangles= malloc (sizeof(Triangle*) * (2*dep.nb_points -6));
+    inter.points= malloc(sizeof(Point) * dep.nb_points);
+    inter.triangles= malloc (sizeof(Triangle) * (2*dep.nb_points -6));
 
-    inter.pixels= malloc (sizeof(Pixel*) * dep.hauteur);
+    inter.pixels= malloc (sizeof(Couleur*) * dep.hauteur);
     for(int y =0; y<dep.hauteur; y++){
-        inter.pixels[y]= malloc (sizeof(Pixel) * dep.largeur);
+        inter.pixels[y]= malloc (sizeof(Couleur) * dep.largeur);
     }
+
+    open_window(800,600);
+
 
     char filename[64];
     for (int k=0; k<=N; k++){
         calcul_image_intermedaire(dep, arr, &inter, k, N);
+
+        clear_window(CouleurBlanche);
+        afficher_image(dep,10,10);
+        afficher_image(arr,220,10);
+        afficher_image(inter,10,220);
+        refresh_window();
+        waitht_delay(200);
+
         sprintf (filename, "output/image_%03d.ppm", k);
         ecrire_ppm(inter, filename);
     }
 
+    wait_escape();
+    close_window();
+    
     for (int y=0; y<dep.hauteur; y++) free(inter.pixels[y]);
     free(inter.pixels);
     free(inter.points);
