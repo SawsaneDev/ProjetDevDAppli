@@ -3,17 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-<<<<<<< HEAD
+
  int point_dans_triangle(Point p, Point a, Point b, Point c){
     float d1= (p.x -b.x)*(a.y -b.y) -(a.x - b.x)*(p.y-b.y);
     float d2= (p.x -c.x)*(b.y -c.y) -(b.x - c.x)*(p.y-c.y);
     float d3= (p.x -a.x)*(c.y -a.y) -(c.x - a.x)*(p.y-a.y);
     return ((d1>=0 && d2>=0 && d3>=0) || (d1<=0 && d2<=0 && d3<=0));
 }
-=======
-
-
->>>>>>> e698413b10cda78e39259f0999900478767ec216
 
 void calcul_points_intermediaires(Point* dep, Point* arr, Point* inter, int n, float alpha){
     for (int i=0; i<n; i++){
@@ -23,19 +19,16 @@ void calcul_points_intermediaires(Point* dep, Point* arr, Point* inter, int n, f
 }
 
 
- int  point_dans_triangle(Point p, Point a, Point b, Point c){
-    float d1= (p.x -b.x)*(a.y -b.y) -(a.x - b.x)*(p.y-b.y);
-    float d2= (p.x -c.x)*(b.y -c.y) -(b.x - c.x)*(p.y-c.y);
-    float d3= (p.x -a.x)*(c.y -a.y) -(c.x - a.x)*(p.y-a.y);
-    return ((d1>=0 && d2>=0 && d3>=0) || (d1<=0 && d2<=0 && d3<=0));
-}
-
 void triangulation(Point* pts , int n, Triangle* tris, int* nb_tris){
+  if(n<5){
+   *nb_tris=0;
+   return;
+  }
   // Construction des 4 premiers triangles à partir des 4 coins
     tris[0]=(Triangle){0,1,4};
     tris[1]=(Triangle){1,2,4};
-    tris[2]=(Triangle){2,3,4}
-    tris[3]=(Triangle){3,0,4}
+    tris[2]=(Triangle){2,3,4};
+    tris[3]=(Triangle){3,0,4};
     *nb_tris=4;
 
     for (int p=5; p<n; p++){
@@ -55,8 +48,7 @@ void triangulation(Point* pts , int n, Triangle* tris, int* nb_tris){
     }
 }
 
-<<<<<<< HEAD
-=======
+
 
 
 Pixel interpolation_pixel(Pixel d, Pixel a , float alpha){
@@ -77,7 +69,6 @@ void calcul_barycentrique(Point P,Point A, Point B, Point C, float* l1, float* l
 
 
 
->>>>>>> e698413b10cda78e39259f0999900478767ec216
 void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N){
     float alpha= (float)k/ N;
 
@@ -90,15 +81,14 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
 
     for(int y=0; y<dep.hauteur; y++){
         for(int x=0; x< dep.largeur; x++){
-<<<<<<< HEAD
-            inter->pixels[y][x].r=(1-alpha)*dep.pixels[y][x].r + alpha*arr.pixels[y][x].r;
-            inter->pixels[y][x].g=(1-alpha)*dep.pixels[y][x].g + alpha*arr.pixels[y][x].g;
-            inter->pixels[y][x].b=(1-alpha)*dep.pixels[y][x].b + alpha*arr.pixels[y][x].b;
-=======
+
+            inter->pixels[y][x]=dep.pixels[y][x];
+
             Point P={ (float)x, (float)y};
             int trouve =0;
             for (int t=0; t< inter->nb_triangles && !trouve; t++){
                 Triangle tr= inter->triangles[t];
+             
                 Point A= inter->points[tr.a];
                 Point B= inter->points[tr.b];
                 Point C= inter->points[tr.c];
@@ -112,25 +102,27 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
                     int xA= (int)(l1*arr.points[tr.a].x +l2*arr.points[tr.b].x + l3*arr.points[tr.c].x);
                     int yA= (int)(l1*arr.points[tr.a].y +l2*arr.points[tr.b].y + l3*arr.points[tr.c].y);
 
-                    if (xD <0) xD=0; if (yD<0) yD=0;
-                    if (xA<0) xA =0; if (yA<0) yA=0;
-                    if (xD >= dep.largeur xD= dep.largeur-1; if (yD>=dep.hauteur) yD=dep.hauteur-1;
-                    if (xA >= arr.largeur xA= arr.largeur-1; if (yA>=arr.hauteur) yA=arr.hauteur-1;
+                    if (xD <0) xD=0; 
+                    if (yD<0) yD=0;
+                    if (xD >= dep.largeur xD= dep.largeur-1;
+                    if (yD>=dep.hauteur) yD=dep.hauteur-1;
+
+                    if (xA<0) xA =0;
+                    if (yA<0) yA=0;
+                    if (xA >= arr.largeur xA= arr.largeur-1;
+                    if (yA>=arr.hauteur) yA=arr.hauteur-1;
 
                     inter->pixels[y][x]= interpolation_pixel(dep.pixels[yD][xD], arr.pixels[yA][xA], alpha);
                     trouve = 1;
                 }
 
             }
->>>>>>> e698413b10cda78e39259f0999900478767ec216
+
         }
     }
 }
 
-<<<<<<< HEAD
 
-
-=======
 void generer_images_intermediaires(Image dep, Image arr, int N){
     Image inter;
     for (int k=0;k<=N;k++){
@@ -142,4 +134,4 @@ void generer_images_intermediaires(Image dep, Image arr, int N){
     }
 }
     
->>>>>>> e698413b10cda78e39259f0999900478767ec216
+
