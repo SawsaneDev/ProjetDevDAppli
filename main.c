@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-system("mkdir -p output");
 
 int est_ppm(char *nom_fichier) {
     int longueur = strlen(nom_fichier);
@@ -17,7 +16,7 @@ int est_ppm(char *nom_fichier) {
 int main(int argc, char *argv[]) {
 
     system("mkdir -p output");
-    
+
     if (argc < 4) {
         printf("Usage: %s image1 image2 nb_images\n", argv[0]);
         return 1;
@@ -56,6 +55,9 @@ int main(int argc, char *argv[]) {
     sauver_points_dans_fichier("mes_points.txt", img_dep, img_arr);
 
     printf("Calcul du morphing.\n");
+
+    system ("mkdir -p output"); // Crée le dossier pour les images intermédiaires
+    
     for (int k = 0; k<= N; k++) {
         Image img_inter;
 
@@ -72,12 +74,11 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Creation de la video\n");
-    system("ffmpeg -i output/image_%03d.ppm -r 10 mon_film.mp4");
+    system("ffmpeg -y -framerate 25 -i output/image_%03d.ppm -c:v libx264 -pix_fmt yuv420p mon_film.mp4");// Création du film avec FFmpeg
 
     printf("Fin. Appuyez sur Echap pour quitter.\n");
     wait_escape();
 
     return 0;
 }
-
 
