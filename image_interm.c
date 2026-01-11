@@ -89,18 +89,18 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
             for (int t=0; t< inter->nb_triangles && !trouve; t++){
                 Triangle tr= inter->triangles[t];
              
-                Point A= inter->points[tr.a];
-                Point B= inter->points[tr.b];
-                Point C= inter->points[tr.c];
+                Point A= inter->points[tr.p1];
+                Point B= inter->points[tr.p2];
+                Point C= inter->points[tr.p3];
 
                 float l1,l2,l3;
                 calcul_barycentrique(P,A,B,C,&l1,&l2,&l3);
 
                 if (l1>=0 && l2>=0 && l3 >=0){
-                    int xD= (int)(l1*dep.points[tr.a].x +l2*dep.points[tr.b].x + l3*dep.points[tr.c].x);
-                    int yD= (int)(l1*dep.points[tr.a].y +l2*dep.points[tr.b].y + l3*dep.points[tr.c].y);
-                    int xA= (int)(l1*arr.points[tr.a].x +l2*arr.points[tr.b].x + l3*arr.points[tr.c].x);
-                    int yA= (int)(l1*arr.points[tr.a].y +l2*arr.points[tr.b].y + l3*arr.points[tr.c].y);
+                    int xD= (int)(l1*dep.points[tr.p1].x +l2*dep.points[tr.p2].x + l3*dep.points[tr.p3].x);
+                    int yD= (int)(l1*dep.points[tr.p1].y +l2*dep.points[tr.p2].y + l3*dep.points[tr.p3].y);
+                    int xA= (int)(l1*arr.points[tr.p1].x +l2*arr.points[tr.p2].x + l3*arr.points[tr.p3].x);
+                    int yA= (int)(l1*arr.points[tr.p1].y +l2*arr.points[tr.p2].y + l3*arr.points[tr.p3].y);
 
                     if (xD <0) xD=0; 
                     if (yD<0) yD=0;
