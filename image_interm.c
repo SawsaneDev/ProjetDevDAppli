@@ -82,7 +82,7 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
     for(int y=0; y<dep.hauteur; y++){
         for(int x=0; x< dep.largeur; x++){
 
-            inter->pixels[y][x]=dep.pixels[y][x];
+      
 
             Point P={ (float)x, (float)y};
             int trouve =0;
@@ -104,12 +104,12 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
 
                     if (xD <0) xD=0; 
                     if (yD<0) yD=0;
-                    if (xD >= dep.largeur xD= dep.largeur-1;
+                    if (xD >= dep.largeur) xD= dep.largeur-1;
                     if (yD>=dep.hauteur) yD=dep.hauteur-1;
 
                     if (xA<0) xA =0;
                     if (yA<0) yA=0;
-                    if (xA >= arr.largeur xA= arr.largeur-1;
+                    if (xA >= arr.largeur) xA= arr.largeur-1;
                     if (yA>=arr.hauteur) yA=arr.hauteur-1;
 
                     inter->pixels[y][x]= interpolation_pixel(dep.pixels[yD][xD], arr.pixels[yA][xA], alpha);
@@ -123,15 +123,5 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
 }
 
 
-void generer_images_intermediaires(Image dep, Image arr, int N){
-    Image inter;
-    for (int k=0;k<=N;k++){
-        calcul_image_intermediaire(dep,arr,&inter,k,N);
-        char filename[64];
-        sprintf (filename, "output/image_%03d.ppm", k);
-        ecrire_ppm(inter, filename);
-        printf("Image %d/%d generee.\n",k,N;
-    }
-}
-    
+ 
 
