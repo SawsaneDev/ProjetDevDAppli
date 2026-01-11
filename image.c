@@ -1,73 +1,60 @@
+#include "morphing.h"
+#include "uvsqgraphics_2.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "uvsqgraphics_2.h"
-#include "../include/morphing.h"
 
-void convert_to_ppm(char*input, char*output){
-
+void conversion_ppm(char*input, char*output){
     char cmd[512];
-    snprintf(cmd, sizeof(cmd),"magik convert %s %s", input, output);
-    int ret=system(cmd);
-    if (ret!=0){
-        printf("Erreur de conversion d'image");
-    }
+    snprintf(cmd, sizeof(cmd),"convert %s %s", input, output);
+    system(cmd);
 }
 
-Imagelire _ppm(char*filename){
-    Image img;
-    FILE* f= fopen(filename,"r");
-    if(!f){
-        printf("Impossible d'ouvrir le fichier");
-        img.width=img.height=0;
-        return img;
-    }
-
+void lire_ppm(char* filename, Image* img) {
+    FILE* f = fopen(filename,"r");
+    if(!f) return;
     char format[3];
-    fsacnf(f,"%2s\n",format);
-    fscanf(f,"%d %d",&img.width,&img.height);
+    fscanf(f, "%2s", format);
+    fscanf(f, "%d %d", &img->largeur, &img->hauteur);
     int max_val;
-    fscand(f,"%d\n",&max_val);
+    fscanf(f, "%d", &max_val);
 
-    for(int i=0;i<img.height; i++){
-        for(int j=0;j<img.width;j++){
-            int r,g,b;
-            fscanf(f,"%d %d %d",&r,&g,&b);
-            img.pixels[i][j].r= (unsigned char) r;
-            img.pixels[i][j].g= (unsigned char) g;
-            img.pixels[i][j].b=(unsigned char ) b;
+
+    for(int i=0; i<img->hauteur; i++){
+        for(int j=0;j<img->largeur;j++){
+            int r, g, b;
+            fscanf(f,"%d %d %d",&r, &g, &b);
+            img->pixels[i][j].r= (unsigned char) r;
+            img->pixels[i][j].g= (unsigned char) g;
+            img->pixels[i][j].b=(unsigned char ) b;
         }
     }
-    img.nb_points=0;
-    img.nb_triangles=0;
-
+    img->nb_points=0;
+    img->nb_triangles=0;
     fclose(f);
-    return img;
 }
 
 
-void afficher_images(Image img1, Image img2){
-    int window.width=img1.width+img2.width;
-    int window.height= (img1.height>img2.height) ? img1.height : img2.height;
+void visualiser_image(Image img1, Image img2) {
+    init_graphics(img1.largeur + img2.largeur, img1.hauteur);
 
-    init_graphics(window_width, window_height);
-
-    for(int y=0; y< img1.height; y++){
-        for(int x=0;x<img1.width;x++){
-            couleur c= couleur_RGB(img1.pixels[y][x].r,img1.pixels[y][x].g,img1.pixels[y][x].b);
-            
-            plot(x,y,c)   
-            
+    for(int y=0; y< img1.hauteur; y++){
+        for(int x=0; x<img1.largeur;x++){
+            COULEUR c= couleur_RGB(img1.pixels[y][x].r,img1.pixels[y][x].g,img1.pixels[y][x].b);
+            draw_pixel((POINT){x,y},c);  
         }
     }
+}
 
-    for(int y=0;y<img2.height;y++){
-        for(int x=0;x<img2.width;x++){
-            coueleur c =couleur_RGB(img2.pixels[y][x].r,img2.pixels[y][x].g,img2.pixels[y][x].b);
-            plot(x+img1.width,y,c);
-
+void sauver_img_ppm(char* filename, Image* img) {
+    FILE* f = fopen(filename, "w");
+    fprintf(f, "P3_\n%d %d\n255\n", img->largeur, img->hauteur);
+    for(int i=0; i<img->hauteur; i++) {
+        for(int j=0; j<img->largeur; j++){
+            fprintf(f, "%d %d %d", img->pixels[i][j].r, img->pixels[i][j].g, img->pixels[i][j].b);
         }
+        fprintf(f, "\n");
     }
-
-    attendre_clic(c);
-    fermer_fenetre();
+    fclose(f);
+    wait_clic();
+    wait_escape();
 }

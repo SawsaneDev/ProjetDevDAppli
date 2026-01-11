@@ -1,3 +1,4 @@
+#include "uvsqgraphics_2.h"
 #include "morphing.h"
 
 void saisir_les_points(Image *img_dep, Image *img_arr) {
@@ -10,7 +11,7 @@ void saisir_les_points(Image *img_dep, Image *img_arr) {
         printf("Point %d : Cliquez sur l'image de Gauche\n", i);
         POINT p1 = wait_clic();
         draw_circle(p1, 5, rouge);
-        draw_printf(p1, rouge, 10, "%d", i);
+        aff_int(i, 10, p1, rouge);
 
         img_dep->points[i].x = p1.x;
         img_dep->points[i].y = p1.y;
@@ -18,7 +19,7 @@ void saisir_les_points(Image *img_dep, Image *img_arr) {
         printf("Point %d : Cliquez sur l'image de Droite\n", i);
         POINT p2 = wait_clic();
         draw_circle(p2, 5, bleu);
-        draw_printf(p2, bleu, 10, "%d", i);
+        aff_int(i, 10, p2, bleu);
 
         img_arr->points[i].x = p2.x;
         img_arr->points[i].y = p2.y;
@@ -30,7 +31,7 @@ void saisir_les_points(Image *img_dep, Image *img_arr) {
     }
 }
 
-void sauver_points_dan_fichier(char *nom_fichier, Image img_dep, Image img_arr) {
+void sauver_points_dans_fichier(char *nom_fichier, Image img_dep, Image img_arr) {
     FILE *f = fopen(nom_fichier, "w");
     if (f == NULL) {
         printf("Erreur : ouverture du fichier impossible.\n");
@@ -42,7 +43,7 @@ void sauver_points_dan_fichier(char *nom_fichier, Image img_dep, Image img_arr) 
     fprintf(f, "0 %d 0 %d\n", img_dep.hauteur, img_arr.hauteur);
     fprintf(f, "%d %d %d %d\n", img_dep.largeur, img_dep.hauteur, img_arr.largeur, img_arr.hauteur);
 
-    for (int j = 0; j > img_dep.nb_points; j++) {
+    for (int j = 0; j < img_dep.nb_points; j++) {
         fprintf(f, "%f %f %f %f\n",
             img_dep.points[j].x, img_dep.points[j].y,
             img_arr.points[j].x, img_arr.points[j].y);
@@ -50,3 +51,7 @@ void sauver_points_dan_fichier(char *nom_fichier, Image img_dep, Image img_arr) 
     fclose(f);
     printf("Les point sont sauvegardes dans %s .\n", nom_fichier);
 }
+
+
+
+
