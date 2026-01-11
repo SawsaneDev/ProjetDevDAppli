@@ -51,6 +51,9 @@ int main(int argc, char *argv[]) {
     sauver_points_dans_fichier("mes_points.txt", img_dep, img_arr);
 
     printf("Calcul du morphing.\n");
+
+    system ("mkdir -p output"); // Crée le dossier pour les images intermédiaires
+    
     for (int k = 0; k<= N; k++) {
         Image img_inter;
 
@@ -61,14 +64,14 @@ int main(int argc, char *argv[]) {
         triangulation(img_inter.points, img_inter.nb_points, img_inter.triangles, &img_inter.nb_triangles);
 
         char nom_temp[100];
-        sprintf(nom_temp, "output/image_%d03.ppm", k);
+        sprintf(nom_temp, "output/image_%03d.ppm", k);
         sauver_img_ppm(nom_temp, &img_inter);
 
         printf("Image %d sur %d generee\n", k, N);
     }
 
     printf("Creation de la video\n");
-    system("ffmpeg -i output/image_%03d.ppm -r 10 mon_film.mp4");
+    system("ffmpeg -y -framerate 25 -i output/image_%03d.ppm -c:v libx264 -pix_fmt yuv420p mon_film.mp4");// Création du film avec FFmpeg
 
     printf("Fin. Appuyez sur Echap pour quitter.\n");
     wait_escape();
