@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+system("mkdir -p output");
+
 int est_ppm(char *nom_fichier) {
     int longueur = strlen(nom_fichier);
     if (longueur > 4 && strcmp(nom_fichier + longueur - 4, ".ppm") ==0) {
@@ -13,6 +15,9 @@ int est_ppm(char *nom_fichier) {
 }
 
 int main(int argc, char *argv[]) {
+
+    system("mkdir -p output");
+    
     if (argc < 4) {
         printf("Usage: %s image1 image2 nb_images\n", argv[0]);
         return 1;
@@ -42,7 +47,7 @@ int main(int argc, char *argv[]) {
     lire_ppm(fichier_final_1, &img_dep);
     lire_ppm(fichier_final_2, &img_arr);
 
-    init_graphics(img_dep.largeur + img_arr.largeur + 20, img_dep.hauteur);
+    init_graphics(img_dep.largeur + img_arr.largeur + 600, img_dep.hauteur);
     visualiser_image(img_dep, img_arr);
 
     printf("Cliquez sur les points pour le morphing.\n");
@@ -58,10 +63,9 @@ int main(int argc, char *argv[]) {
         img_inter.hauteur = img_dep.hauteur;
 
         calcul_image_intermediaire(img_dep, img_arr, &img_inter, k, N);
-        triangulation(img_inter.points, img_inter.nb_points, img_inter.triangles, &img_inter.nb_triangles);
-
+       
         char nom_temp[100];
-        sprintf(nom_temp, "output/image_%d03.ppm", k);
+        sprintf(nom_temp, "output/image_%03d.ppm", k);
         sauver_img_ppm(nom_temp, &img_inter);
 
         printf("Image %d sur %d generee\n", k, N);
@@ -75,3 +79,5 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+

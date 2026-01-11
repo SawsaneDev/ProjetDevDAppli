@@ -6,10 +6,21 @@ void saisir_les_points(Image *img_dep, Image *img_arr) {
     printf("Début de la saisie des points\n");
     printf("Ciquez sur l'image de gauche puis sur l'image de droite\n");
 
-    for (i = 0; i < 100; i++) {
-        
-        printf("Point %d : Cliquez sur l'image de Gauche\n", i);
+    img_dep->points[0] = (Point){0, 0}; img_arr->points[0] = (Point){0, 0};
+    img_dep->points[1] = (Point){img_dep->largeur-1, 0}; img_arr->points[1] = (Point){img_arr->largeur-1, 0};
+    img_dep->points[2] = (Point){img_dep->largeur-1, img_dep->hauteur-1}; img_arr->points[2] = (Point){img_arr->largeur-1, img_arr->hauteur-1};
+    img_dep->points[3] = (Point){0, img_dep->hauteur-1}; img_arr->points[3] = (Point){img_arr->hauteur-1};
+
+    img_dep->nb_points = 4;
+    img_arr->nb_points = 4;
+
+    i = 4;
+    while (i < 100) {
         POINT p1 = wait_clic();
+
+        if (p1.y > img_dep->hauteur - 50) break;
+
+        printf("Point %d : Cliquez sur l'image de Gauche\n", i);
         draw_circle(p1, 5, rouge);
         aff_int(i, 10, p1, rouge);
 
@@ -37,11 +48,6 @@ void sauver_points_dans_fichier(char *nom_fichier, Image img_dep, Image img_arr)
         printf("Erreur : ouverture du fichier impossible.\n");
         return;
     }
-
-    fprintf(f, "0 0 0 0\n");
-    fprintf(f, "%d 0 %d 0\n", img_dep.largeur, img_arr.largeur);
-    fprintf(f, "0 %d 0 %d\n", img_dep.hauteur, img_arr.hauteur);
-    fprintf(f, "%d %d %d %d\n", img_dep.largeur, img_dep.hauteur, img_arr.largeur, img_arr.hauteur);
 
     for (int j = 0; j < img_dep.nb_points; j++) {
         fprintf(f, "%f %f %f %f\n",
