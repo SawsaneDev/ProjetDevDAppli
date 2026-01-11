@@ -20,7 +20,7 @@ typedef struct{
 typedef struct {
     int largeur;
     int hauteur;
-    Pixel pixels[800][800];
+    Pixel **pixels;
     Point points[100];
     int nb_points;
     Triangle triangles[200];
@@ -39,3 +39,7 @@ void triangulation(Point* pts, int n, Triangle* tris, int* nb_tris);
 void conversion_ppm(char *input, char *output);
 void saisir_les_points(Image *img_dep, Image *img_arr);
 void sauver_points_dans_fichier(char *nom_fichier, Image img_dep, Image img_arr);
+
+
+
+

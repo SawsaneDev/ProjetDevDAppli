@@ -60,9 +60,18 @@ int main(int argc, char *argv[]) {
     
     for (int k = 0; k<= N; k++) {
         Image img_inter;
-
         img_inter.largeur = img_dep.largeur;
         img_inter.hauteur = img_dep.hauteur;
+
+        img_inter.pixels = malloc(img_inter.hauteur * sizeof(Pixel *));
+        for (int i = 0; i < img_inter.hauteur; i++) {
+            img_inter.pixels[i] = malloc(img_inter.largeur * sizeof(Pixel));
+        }
+
+        for (int i = 0; i<img_inter.hauteur; i++) {
+            free(img_inter.pixels[i]);
+        }
+        free(img_inter.pixels);
 
         calcul_image_intermediaire(img_dep, img_arr, &img_inter, k, N);
        
@@ -79,6 +88,19 @@ int main(int argc, char *argv[]) {
     printf("Fin. Appuyez sur Echap pour quitter.\n");
     wait_escape();
 
+for (int i = 0; i < img_dep.hauteur; i++) {
+        free(img_dep.pixels[i]);
+}
+    free(img_dep.pixels);
+
+    // LIBÉRATION DE IMG_ARR
+for (int i = 0; i < img_arr.hauteur; i++) {
+        free(img_arr.pixels[i]);
+}
+    free(img_arr.pixels);
+
     return 0;
 }
+
+
 

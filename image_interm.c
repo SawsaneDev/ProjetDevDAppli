@@ -125,7 +125,7 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
 
             Point P={ (float)x, (float)y};
             int trouve =0; // flag pour savoir si le pixel appartient à un triangle
-            for (int t=0; t< inter->nb_triangles && !trouve; t++){
+            for (int t=0; t< inter->nb_triangles && !trouve; t++) {
                 Triangle tr= inter->triangles[t];
              
 
@@ -151,9 +151,10 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
                     if (yD>=dep.hauteur) yD=dep.hauteur-1;
                     if (xA >= arr.largeur) xA= arr.largeur-1;
                     if (yA>=arr.hauteur) yA=arr.hauteur-1;
+                }
 
 
-                if (l1>=0 && l2>=0 && l3 >=0){// le pixel est dans le triangle
+                if (l1>=0 && l2>=0 && l3 >=0) {// le pixel est dans le triangle
                  // Calcul de la position correspondante dans l'image de départ
                     int xD= (int)(l1*dep.points[tr.p1].x +l2*dep.points[tr.p2].x + l3*dep.points[tr.p3].x);
                     int yD= (int)(l1*dep.points[tr.p1].y +l2*dep.points[tr.p2].y + l3*dep.points[tr.p3].y);
@@ -177,8 +178,12 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
                     inter->pixels[y][x]= interpolation_pixel(dep.pixels[yD][xD], arr.pixels[yA][xA], alpha);
                     trouve = 1;// pixel traité
                 }
-
             }
         }
     }
 }
+
+
+
+
+
