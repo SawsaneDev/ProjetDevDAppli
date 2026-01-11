@@ -100,3 +100,14 @@ void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N
     }
 }
 
+void generer_images_intermediaires(Image dep, Image arr, int N){
+    Image inter;
+    for (int k=0;k<=N;k++){
+        calcul_image_intermediaire(dep,arr,&inter,k,N);
+        char filename[64];
+        sprintf (filename, "output/image_%03d.ppm", k);
+        ecrire_ppm(inter, filename);
+        printf("Image %d/%d generee.\n",k,N;
+    }
+}
+    }
