@@ -110,4 +110,4 @@ void generer_images_intermediaires(Image dep, Image arr, int N){
         printf("Image %d/%d generee.\n",k,N;
     }
 }
-    }
+    
