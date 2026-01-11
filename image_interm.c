@@ -31,11 +31,14 @@ void calcul_points_intermediaires(Point* dep, Point* arr, Point* inter, int n, f
 }
 
 void triangulation(Point* pts , int n, Triangle* tris, int* nb_tris){
-    tris[0]=(Triangle){0,1,2};
-    tris[1]=(Triangle){0,2,3};
-    *nb_tris=2;
+  // Construction des 4 premiers triangles à partir des 4 coins
+    tris[0]=(Triangle){0,1,4};
+    tris[1]=(Triangle){1,2,4};
+    tris[2]=(Triangle){2,3,4}
+    tris[3]=(Triangle){3,0,4}
+    *nb_tris=4;
 
-    for (int p=4; p<n; p++){
+    for (int p=5; p<n; p++){
         for(int t=0; t< *nb_tris; t++){
             Triangle tr= tris[t];
 
