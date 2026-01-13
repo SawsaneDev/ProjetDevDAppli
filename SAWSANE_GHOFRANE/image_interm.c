@@ -1,210 +1,23 @@
-/* #include "uvsqgraphics_2.h"
-#include "morphing.h"
-#include <stdio.h>
-#include <stdlib.h>
-
-
-// Fonction pour vérifier si un point P est à l'intérieur d'un triangle ABC
-// Utilise les produits vectoriels pour tester le côté de chaque segment
-
- int point_dans_triangle(Point p, Point a, Point b, Point c){
-    float d1= (p.x -b.x)*(a.y -b.y) -(a.x - b.x)*(p.y-b.y);
-    float d2= (p.x -c.x)*(b.y -c.y) -(b.x - c.x)*(p.y-c.y);
-    float d3= (p.x -a.x)*(c.y -a.y) -(c.x - a.x)*(p.y-a.y);
-  // Le point est à l'intérieur si tous les signes des produits vectoriels sont les mêmes
-    return ((d1>=0 && d2>=0 && d3>=0) || (d1<=0 && d2<=0 && d3<=0));
-}
-
-
-// Calcul des positions intermédiaires des points de base entre deux images
-// dep : points de l'image de départ, arr : points de l'image d'arrivée
-// inter : points intermédiaires calculés pour l'image k/N
-void calcul_points_intermediaires(Point* dep, Point* arr, Point* inter, int n, float alpha){
-    for (int i=0; i<n; i++){
-        inter[i].x = (1-alpha)*dep[i].x + alpha*arr[i].x; // formule x intermédiaire
-        inter[i].y = (1-alpha)*dep[i].y + alpha*arr[i].y; // formule y intermédiaire
-    }
-}
-
-
-
-// Triangulation de l'image intermédiaire
-// pts : points intermédiaires, tris : tableau des triangles, nb_tris : nombre de triangles calculés
-
-void triangulation(Point* pts , int n, Triangle* tris, int* nb_tris){
-  if(n<5){
-   *nb_tris=0; // pas assez de points pour trianguler
-   return;
-  }
-  // Construction des 4 premiers triangles à partir des 4 coins
-    tris[0]=(Triangle){0,1,4};
-    tris[1]=(Triangle){1,2,4};
-    tris[2]=(Triangle){2,3,4};
-    tris[3]=(Triangle){3,0,4};
-    *nb_tris=4;
- 
-  // Pour chaque point restant, trouver le triangle contenant ce point et subdiviser
-    for (int p=5; p<n; p++){
-        for(int t=0; t< *nb_tris; t++){
-            Triangle tr= tris[t];
-         
-            // Vérifie si le point est dans ce triangle
-            if (point_dans_triangle(pts[p], pts[tr.p1], pts[tr.p2], pts[tr.p3])){
-              // Supprimer le triangle original en le remplaçant par le dernier
-                tris[t]= tris[--(*nb_tris)];
-             
-               // Ajouter les trois nouveaux triangles formés avec le nouveau point
-                tris [(*nb_tris)++]= (Triangle){tr.p1, tr.p2, p};
-                tris [(*nb_tris)++]= (Triangle){tr.p2, tr.p3, p};
-                tris [(*nb_tris)++]= (Triangle){tr.p3, tr.p1, p};
-                break;// on a trouvé le triangle, on passe au point suivant
-            }       
-        }
-
-    }
-}
-
-
-// Interpolation linéaire entre deux pixels selon alpha
-Pixel interpolation_pixel(Pixel d, Pixel a , float alpha){
-    Pixel p;
-    p.r = (1- alpha)* d.r + alpha* a.r;
-    p.g = (1- alpha)* d.g + alpha* a.g;
-    p.b = (1- alpha)* d.b + alpha* a.b;
-    return p;
-}
-
-// Calcul des coordonnées barycentriques d'un point P par rapport au triangle ABC
-// l1, l2, l3 sont les coefficients barycentriques : l1+l2+l3=1
-
-void calcul_barycentrique(Point P,Point A, Point B, Point C, float* l1, float* l2, float* l3){
-    float detT = (B.y -C.y)*(A.x-C.x) +(C.x-B.x)*(A.y-C.y);// déterminant du triangle
-    *l1=((B.y -C.y)*(P.x-C.x)+(C.x-B.x)*(P.y-C.y))/ detT;
-    *l2=((C.y-A.y)*(P.x-C.x)+(A.x-C.x)*(P.y-C.y))/detT;
-    *l3= 1.0f-*l1-*l2; // somme des barycentriques = 1
-}
-
-
-// Calcul de l'image intermédiaire entre dep et arr
-// k : étape actuelle, N : nombre total d'images
-
-void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N){
-    float alpha= (float)k/ N; // coefficient d'interpolation
-
-  // Copier les dimensions et nombre de points
-    inter->largeur= dep.largeur;
-    inter->hauteur= dep.hauteur;
-    inter->nb_points=dep.nb_points;
-
-  // Calcul des points intermédiaires
-    calcul_points_intermediaires(dep.points, arr.points, inter->points, dep.nb_points, alpha);
- // Parcours de chaque pixel de l'image
-    triangulation(inter->points, inter->nb_points, inter->triangles, &inter->nb_triangles);
-
-
-    for(int y=0; y<dep.hauteur; y++){
-        for(int x=0; x< dep.largeur; x++){
-            inter->pixels[y][x].r=(1-alpha)*dep.pixels[y][x].r + alpha*arr.pixels[y][x].r;
-            inter->pixels[y][x].g=(1-alpha)*dep.pixels[y][x].g + alpha*arr.pixels[y][x].g;
-            inter->pixels[y][x].b=(1-alpha)*dep.pixels[y][x].b + alpha*arr.pixels[y][x].b;
-
-            Point P={ (float)x, (float)y};
-            int trouve =0;
-
-            for (int t=0; t< inter->nb_triangles && !trouve; t++){
-                Triangle tr= inter->triangles[t];
-            }
-        }    
-    }
- 
-// Parcours de chaque pixel de l'image
-    for(int y=0; y<dep.hauteur; y++){
-        for(int x=0; x< dep.largeur; x++){
-
-      
-
-            Point P={ (float)x, (float)y};
-            int trouve =0; // flag pour savoir si le pixel appartient à un triangle
-            for (int t=0; t< inter->nb_triangles && !trouve; t++) {
-                Triangle tr= inter->triangles[t];
-             
-
-                Point A= inter->points[tr.p1];
-                Point B= inter->points[tr.p2];
-                Point C= inter->points[tr.p3];
-
-                float l1,l2,l3;
-                calcul_barycentrique(P,A,B,C,&l1,&l2,&l3);
-
-
-
-                if (l1>=0 && l2>=0 && l3 >=0){
-                    int xD= (int)(l1*dep.points[tr.p1].x +l2*dep.points[tr.p2].x + l3*dep.points[tr.p3].x);
-                    int yD= (int)(l1*dep.points[tr.p1].y +l2*dep.points[tr.p2].y + l3*dep.points[tr.p3].y);
-                    int xA= (int)(l1*arr.points[tr.p1].x +l2*arr.points[tr.p2].x + l3*arr.points[tr.p3].x);
-                    int yA= (int)(l1*arr.points[tr.p1].y +l2*arr.points[tr.p2].y + l3*arr.points[tr.p3].y);
-
-
-                
-                    if (xD >= dep.largeur) xD= dep.largeur-1;
-                    if (yD>=dep.hauteur) yD=dep.hauteur-1;
-                    if (xA >= arr.largeur) xA= arr.largeur-1;
-                    if (yA>=arr.hauteur) yA=arr.hauteur-1;
-                }
-
-
-                if (l1>=0 && l2>=0 && l3 >=0) {// le pixel est dans le triangle
-                 // Calcul de la position correspondante dans l'image de départ
-                    int xD= (int)(l1*dep.points[tr.p1].x +l2*dep.points[tr.p2].x + l3*dep.points[tr.p3].x);
-                    int yD= (int)(l1*dep.points[tr.p1].y +l2*dep.points[tr.p2].y + l3*dep.points[tr.p3].y);
-                  // Calcul de la position correspondante dans l'image d'arrivée
-                    int xA= (int)(l1*arr.points[tr.p1].x +l2*arr.points[tr.p2].x + l3*arr.points[tr.p3].x);
-                    int yA= (int)(l1*arr.points[tr.p1].y +l2*arr.points[tr.p2].y + l3*arr.points[tr.p3].y);
-
-                  // Clamping : éviter de sortir de l'image
-                    if (xD <0) xD=0; 
-                    if (yD<0) yD=0;
-                    if (xD >= dep.largeur) xD= dep.largeur-1;
-                    if (yD>=dep.hauteur) yD=dep.hauteur-1;
-
-
-                    if (xA<0) xA =0;
-                    if (yA<0) yA=0;
-                    if (xA >= arr.largeur) xA= arr.largeur-1;
-                    if (yA>=arr.hauteur) yA=arr.hauteur-1;
-
-                  // Interpolation de la couleur
-                    inter->pixels[y][x]= interpolation_pixel(dep.pixels[yD][xD], arr.pixels[yA][xA], alpha);
-                    trouve = 1;// pixel traité
-                }
-            }
-        }
-    }
-} */
-
-
-
-
-
 #include "uvsqgraphics_2.h"
 #include "morphing.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-// --- FONCTIONS UTILITAIRES ---
-
-// Vérifie si un point P est dans le triangle ABC
+// fonction produit vectoriel pour savoir si P est dans ABC
+// trouve sur internet la formule
 int point_dans_triangle(Point p, Point a, Point b, Point c) {
     float d1 = (p.x - b.x) * (a.y - b.y) - (a.x - b.x) * (p.y - b.y);
     float d2 = (p.x - c.x) * (b.y - c.y) - (b.x - c.x) * (p.y - c.y);
     float d3 = (p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y);
+    // faut que tous les signes soient pareils
     return ((d1 >= 0 && d2 >= 0 && d3 >= 0) || (d1 <= 0 && d2 <= 0 && d3 <= 0));
 }
 
-// Calcul des coordonnées barycentriques
+// calcul des coefs barycentriques (lambda mu etc)
+// voir le pdf du projet section 4
 void calcul_barycentrique(Point P, Point A, Point B, Point C, float* l1, float* l2, float* l3) {
     float detT = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y);
-    // Petite sécurité pour éviter la division par zéro si le triangle est plat
+    // protection division par zero
     if (detT == 0) { *l1 = -1; return; } 
     
     *l1 = ((B.y - C.y) * (P.x - C.x) + (C.x - B.x) * (P.y - C.y)) / detT;
@@ -212,14 +25,17 @@ void calcul_barycentrique(Point P, Point A, Point B, Point C, float* l1, float* 
     *l3 = 1.0f - *l1 - *l2; 
 }
 
+// interpolation couleur simple
 Pixel interpolation_pixel(Pixel d, Pixel a, float alpha) {
     Pixel p;
+    // cast en unsigned char obligatoire sinon warning
     p.r = (unsigned char)((1 - alpha) * d.r + alpha * a.r);
     p.g = (unsigned char)((1 - alpha) * d.g + alpha * a.g);
     p.b = (unsigned char)((1 - alpha) * d.b + alpha * a.b);
     return p;
 }
 
+// calcule la position des points pour l'image intermediaire
 void calcul_points_intermediaires(Point* dep, Point* arr, Point* inter, int n, float alpha) {
     for (int i = 0; i < n; i++) {
         inter[i].x = (1 - alpha) * dep[i].x + alpha * arr[i].x;
@@ -227,20 +43,25 @@ void calcul_points_intermediaires(Point* dep, Point* arr, Point* inter, int n, f
     }
 }
 
+// algorithme de triangulation
+// on part des 4 coins et on decoupe les triangles
 void triangulation(Point* pts, int n, Triangle* tris, int* nb_tris) {
     if (n < 5) { *nb_tris = 0; return; }
-
+    
+    // init avec 4 triangles
     tris[0] = (Triangle){0, 1, 4};
     tris[1] = (Triangle){1, 2, 4};
     tris[2] = (Triangle){2, 3, 4};
     tris[3] = (Triangle){3, 0, 4};
     *nb_tris = 4;
-
+    
+    // on ajoute les points un par un
     for (int p = 5; p < n; p++) {
         for (int t = 0; t < *nb_tris; t++) {
             Triangle tr = tris[t];
+            // si le point est dedans on split en 3
             if (point_dans_triangle(pts[p], pts[tr.p1], pts[tr.p2], pts[tr.p3])) {
-                tris[t] = tris[--(*nb_tris)];
+                tris[t] = tris[--(*nb_tris)]; // suppr l'ancien
                 tris[(*nb_tris)++] = (Triangle){tr.p1, tr.p2, p};
                 tris[(*nb_tris)++] = (Triangle){tr.p2, tr.p3, p};
                 tris[(*nb_tris)++] = (Triangle){tr.p3, tr.p1, p};
@@ -250,70 +71,55 @@ void triangulation(Point* pts, int n, Triangle* tris, int* nb_tris) {
     }
 }
 
-// --- FONCTION PRINCIPALE ---
-
+// fonction principale qui genere l'image complete
+// c'est lourd en calculs !
 void calcul_image_intermediaire(Image dep, Image arr, Image* inter, int k, int N) {
     float alpha = (float)k / N; 
-
-    // 1. Initialisation
     inter->largeur = dep.largeur;
     inter->hauteur = dep.hauteur;
     inter->nb_points = dep.nb_points;
-    
-    // CORRECTION : On ne fait PLUS de malloc pour points et triangles
-    // Car ils sont déjà alloués statiquement dans ta structure Image (ex: Point points[100])
 
-    // 2. Calculer positions points intermédiaires
     calcul_points_intermediaires(dep.points, arr.points, inter->points, dep.nb_points, alpha);
-
-    // 3. Triangulation
     triangulation(inter->points, inter->nb_points, inter->triangles, &inter->nb_triangles);
 
-    // 4. Remplissage des pixels
+    // double boucle sur tous les pixels (y puis x)
     for (int y = 0; y < dep.hauteur; y++) {
         for (int x = 0; x < dep.largeur; x++) {
-            
             Point P = {(float)x, (float)y};
             int trouve = 0;
-
+            
+            // on cherche le triangle qui contient le pixel
             for (int t = 0; t < inter->nb_triangles; t++) {
                 Triangle tr = inter->triangles[t];
-                
                 Point A = inter->points[tr.p1];
                 Point B = inter->points[tr.p2];
                 Point C = inter->points[tr.p3];
-
                 float l1, l2, l3;
+                
                 calcul_barycentrique(P, A, B, C, &l1, &l2, &l3);
 
+                // si coord positives, c'est dedans
                 if (l1 >= 0 && l2 >= 0 && l3 >= 0) {
+                    float xD = l1 * dep.points[tr.p1].x + l2 * dep.points[tr.p2].x + l3 * dep.points[tr.p3].x;
+                    float yD = l1 * dep.points[tr.p1].y + l2 * dep.points[tr.p2].y + l3 * dep.points[tr.p3].y;
+                    float xA = l1 * arr.points[tr.p1].x + l2 * arr.points[tr.p2].x + l3 * arr.points[tr.p3].x;
+                    float yA = l1 * arr.points[tr.p1].y + l2 * arr.points[tr.p2].y + l3 * arr.points[tr.p3].y;
                     
-                    float xD_f = l1 * dep.points[tr.p1].x + l2 * dep.points[tr.p2].x + l3 * dep.points[tr.p3].x;
-                    float yD_f = l1 * dep.points[tr.p1].y + l2 * dep.points[tr.p2].y + l3 * dep.points[tr.p3].y;
+                    // securite pour pas sortir du tableau (segfault)
+                    int ixD = (int)xD; if(ixD<0) ixD=0; if(ixD>=dep.largeur) ixD=dep.largeur-1;
+                    int iyD = (int)yD; if(iyD<0) iyD=0; if(iyD>=dep.hauteur) iyD=dep.hauteur-1;
+                    int ixA = (int)xA; if(ixA<0) ixA=0; if(ixA>=arr.largeur) ixA=arr.largeur-1;
+                    int iyA = (int)yA; if(iyA<0) iyA=0; if(iyA>=arr.hauteur) iyA=arr.hauteur-1;
 
-                    float xA_f = l1 * arr.points[tr.p1].x + l2 * arr.points[tr.p2].x + l3 * arr.points[tr.p3].x;
-                    float yA_f = l1 * arr.points[tr.p1].y + l2 * arr.points[tr.p2].y + l3 * arr.points[tr.p3].y;
-
-                    int xD = (int)xD_f; if(xD < 0) xD=0; if(xD >= dep.largeur) xD = dep.largeur-1;
-                    int yD = (int)yD_f; if(yD < 0) yD=0; if(yD >= dep.hauteur) yD = dep.hauteur-1;
-
-                    int xA = (int)xA_f; if(xA < 0) xA=0; if(xA >= arr.largeur) xA = arr.largeur-1;
-                    int yA = (int)yA_f; if(yA < 0) yA=0; if(yA >= arr.hauteur) yA = arr.hauteur-1;
-
-                    inter->pixels[y][x] = interpolation_pixel(dep.pixels[yD][xD], arr.pixels[yA][xA], alpha);
+                    inter->pixels[y][x] = interpolation_pixel(dep.pixels[iyD][ixD], arr.pixels[iyA][ixA], alpha);
                     trouve = 1;
                     break;
                 }
             }
-            // Si pas trouvé (hors triangulation, ex: bords), on met du noir
+            // fond noir si pas trouvé
             if (!trouve) {
-                inter->pixels[y][x].r = 0;
-                inter->pixels[y][x].g = 0;
-                inter->pixels[y][x].b = 0;
+                inter->pixels[y][x].r = 0; inter->pixels[y][x].g = 0; inter->pixels[y][x].b = 0;
             }
         }
     }
-    
-    // CORRECTION : On ne fait PAS de free(points) ni free(triangles)
-    // car ce sont des tableaux fixes.
 }
